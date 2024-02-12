@@ -16,7 +16,9 @@
 4. Process the metrics (Post-OpenAI)
 5. Execute Trading Logic (long, short or ignore)
 6. Log to database
+
 7. Deployment to AWS EC2, Elastic Beanstalk, ECS, etc. (long-running compute)
+8. "Multithreading" of News and Live Market Websockets 
 
 ### To Do
 1. Parsing of headline
