@@ -18,7 +18,7 @@
 6. Log to database
 
 - Deployment to AWS EC2, Elastic Beanstalk, ECS, etc. (long-running compute)
-- "Multithreading" of News and Live Market Websockets
+- Pseudo-Multithreading of News and Live Market Websockets
 
 #### Receiving News Event
 
@@ -34,7 +34,7 @@
 
 #### Deployment
 
-#### Multithreading
+#### Pseudo-Multithreading
 
 ### To Do
 1. Parsing of headline
