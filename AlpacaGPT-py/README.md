@@ -17,8 +17,24 @@
 5. Execute Trading Logic (long, short or ignore)
 6. Log to database
 
-7. Deployment to AWS EC2, Elastic Beanstalk, ECS, etc. (long-running compute)
-8. "Multithreading" of News and Live Market Websockets 
+- Deployment to AWS EC2, Elastic Beanstalk, ECS, etc. (long-running compute)
+- "Multithreading" of News and Live Market Websockets
+
+#### Receiving News Event
+
+#### Getting Headline
+
+#### Gathering metrics
+
+#### Processing Metrics
+
+#### Trading Logic
+
+#### Logging to Database
+
+#### Deployment
+
+#### Multithreading
 
 ### To Do
 1. Parsing of headline
