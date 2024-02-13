@@ -21,21 +21,29 @@
 - Pseudo-Multithreading of News and Live Market Websockets
 
 #### Receiving News Event
+-
 
 #### Getting Headline
-
+-
+ 
 #### Gathering metrics
-
+-
+ 
 #### Processing Metrics
-
+-
+ 
 #### Trading Logic
-
+-
+ 
 #### Logging to Database
-
+-
+ 
 #### Deployment
-
+-
+ 
 #### Pseudo-Multithreading
-
+-
+ 
 ### To Do
 1. Parsing of headline
     * Based on a set of metrics (confidence of the headline, etc.), use the API to assess the headline and determine the values 
