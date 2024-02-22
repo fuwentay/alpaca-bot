@@ -1,8 +1,11 @@
-# we will use alpaca_trade_api instead of alpaca
 import alpaca_trade_api as api
 
 import config
 from openai import OpenAI
+
+from websocket import create_connection
+import pprint
+import json
 
 import os
 from dotenv import load_dotenv
@@ -13,10 +16,8 @@ alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "
 
 # bracket order that consists of market, stop and limit order
 def place_bracket_order(sym, n):
-    symbol_bars = alpaca.get_barset(sym, 'minute', 1).df.iloc[0] # FIXME: doesn't fetch an accurate price
-    symbol_price = symbol_bars[sym]['close']
+    symbol_price = get_market_price(sym)
 
-    # We could buy a position and add a stop-loss and a take-profit of 5 %
     alpaca.submit_order(
         symbol=sym,
         qty=config.position_size/symbol_price,
@@ -29,7 +30,7 @@ def place_bracket_order(sym, n):
         take_profit={'limit_price': symbol_price * config.take_profit}
     )
 
-# to gather impact score based on news headline
+# gather impact score based on news headline
 def get_impact(headline):
     client = OpenAI()
 
@@ -41,3 +42,30 @@ def get_impact(headline):
     ]
     )
     print(response.choices[0].message.content)
+
+# obtain latest closing price for given symbol
+def get_market_price(sym):
+    # TODO: Note that there is only a response when market is open. need to take this into account
+    # TODO: Can also implement uri based on stock/crypto
+
+    uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
+    uri_crypto = 'wss://stream.data.alpaca.markets/v1beta3/crypto/us'   # real-time crypto data
+
+    ws = create_connection(uri_crypto)
+
+    auth_message = {"action":"auth","key": os.getenv("ALPACA_API_KEY"), "secret": os.getenv("ALPACA_SECRET_KEY")}
+    ws.send(json.dumps(auth_message))
+
+    subscription = {"action":"subscribe","bars":[sym]}  # data schema https://docs.alpaca.markets/docs/real-time-stock-pricing-data
+
+    ws.send(json.dumps(subscription))
+    while True:
+        data = json.loads(ws.recv())
+        if data[0]['T'] == 'b':
+            close_price = data[0]['c']  # attribute "c" to return close price in 1 minute intervals
+            print(close_price)
+            return close_price
+        else:
+            pprint.pprint(data[0])
+        print('****************************')
+        exit
