@@ -23,10 +23,13 @@ def on_message(ws, message):
     # trading strategy
     if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # to ignore scenarios where 2 stocks are mentioned
         sym = msg[0]["symbols"][0]
-        if utils.get_impact(msg[0]["headline"]) > config.impact_buy:
-            utils.place_bracket_order(sym, 0)
-        elif utils.get_impact(msg[0]["headline"]) < config.impact_sell:
-            utils.place_bracket_order(sym, 1)
+        if utils.get_impact(msg[0]["headline"]) is not None:
+            if utils.get_impact(msg[0]["headline"]) > config.impact_buy:
+                utils.place_bracket_order(sym, 0)
+            elif utils.get_impact(msg[0]["headline"]) < config.impact_sell:
+                utils.place_bracket_order(sym, 1)
+        else:
+            print("Impact score is None, skipping trading action.")
 
 def on_error(ws, error):
     print(error)

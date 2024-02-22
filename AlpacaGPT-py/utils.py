@@ -32,6 +32,7 @@ def place_bracket_order(sym, n):
 
 # gather impact score based on news headline
 def get_impact(headline):
+    print("getting impact")
     client = OpenAI()
 
     response = client.chat.completions.create(
@@ -42,16 +43,17 @@ def get_impact(headline):
     ]
     )
     print(response.choices[0].message.content)
+    return int(response.choices[0].message.content)
 
 # obtain latest closing price for given symbol
 def get_market_price(sym):
-    # TODO: note that there is only a response when market is open. need to take this into account
+    # TODO: note that there is only a response when market is open. need to take this into account. this is an issue when testing
     # TODO: can also implement uri based on stock/crypto
 
     uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
     uri_crypto = 'wss://stream.data.alpaca.markets/v1beta3/crypto/us'   # real-time crypto data
 
-    ws = create_connection(uri_crypto)
+    ws = create_connection(uri_stock)
 
     auth_message = {"action":"auth","key": os.getenv("ALPACA_API_KEY"), "secret": os.getenv("ALPACA_SECRET_KEY")}
     ws.send(json.dumps(auth_message))
