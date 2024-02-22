@@ -13,12 +13,24 @@
 1. Receive a news event via Alpaca's websocket
 2. Get headline of news event
 3. Parse headline through OpenAI's API to gather some metrics
-4. Process the metrics (Post-OpenAI)
+4. Process the metrics (Couple Sentiment with something like MACD crossover, etc.)
 5. Execute Trading Logic (long, short or ignore)
 6. Log to database
-
 7. Deployment to AWS EC2, Elastic Beanstalk, ECS, etc. (long-running compute)
-8. "Multithreading" of News and Live Market Websockets 
+
+#### Receiving News Event
+
+#### Getting Headline
+
+#### Gathering metrics
+
+#### Processing Metrics
+
+#### Trading Logic
+
+#### Logging to Database
+
+#### Deployment
 
 ### To Do
 1. Parsing of headline
@@ -33,6 +45,7 @@
     * Metrics
     * Trading Decision
 5. Deployment
+6. Backtesting with Historical News Data
 
 ### Technical details
 1. Add your own `.env` file (Alpaca and OpenAI keys)

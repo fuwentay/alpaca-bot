@@ -6,7 +6,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# TODO: pair with some momentum indicator (MA)
+# TODO: log to database
+# TODO: deploy
+# TODO: take profit and stop loss needs to take into account volatility. the stock might not even fluctuate by that percentage. need to leverage!
+
 # websocket functions
+# TODO: note that news events are delayed by 5 hours. might want to look at other sources in the future.
 def on_message(ws, message):
     print(message)
     msg = json.loads(message)
@@ -23,10 +29,14 @@ def on_message(ws, message):
     # trading strategy
     if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # to ignore scenarios where 2 stocks are mentioned
         sym = msg[0]["symbols"][0]
-        if utils.get_impact(msg[0]["headline"]) > config.impact_buy:
-            utils.place_bracket_order(sym, 0)
-        elif utils.get_impact(msg[0]["headline"]) < config.impact_sell:
-            utils.place_bracket_order(sym, 1)
+        impact = utils.get_impact(msg[0]["headline"])
+        if impact is not None:
+            if impact > config.impact_buy:
+                utils.place_bracket_order(sym, 0)
+            elif impact < config.impact_sell:
+                utils.place_bracket_order(sym, 1)
+        else:
+            print("Impact score is None, skipping trading action.")
 
 def on_error(ws, error):
     print(error)
@@ -40,27 +50,10 @@ def on_open(ws):
 
 if __name__ == "__main__":
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://stream.data.alpaca.markets/v1beta1/news",
+    ws = websocket.WebSocketApp("wss://stream.data.alpaca.markets/v1beta1/news",    # fetches both stocks and crypto news
                               on_open=on_open,
                               on_message=on_message,
                               on_error=on_error,
                               on_close=on_close)
 
     ws.run_forever()
-
-# trades = TradingStream(config.API_KEY, config.SECRET_KEY, paper=True)
-# async def trade_status(data):
-#     print(data)
-
-# trades.subscribe_trade_updates(trade_status)
-# trades.run()
-
-# assets = [asset for asset in client.get_all_positions()]
-# positions = [(asset.symbol, asset.qty, asset.current_price) for asset in assets]
-# print("Postions")
-# print(f"{'Symbol':9}{'Qty':>4}{'Value':>15}")
-# print("-" * 28)
-# for position in positions:
-#     print(f"{position[0]:9}{position[1]:>4}{float(position[1]) * float(position[2]):>15.2f}")
-
-# client.close_all_positions(cancel_orders=True)
