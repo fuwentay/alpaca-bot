@@ -16,7 +16,7 @@ alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "
 
 # bracket order that consists of market, stop and limit order
 def place_bracket_order(sym, n):
-    symbol_price = get_market_price(sym)
+    symbol_price = get_market_price(sym)    # TODO: verify that this works. shouldn't need to thread
 
     alpaca.submit_order(
         symbol=sym,
@@ -45,8 +45,8 @@ def get_impact(headline):
 
 # obtain latest closing price for given symbol
 def get_market_price(sym):
-    # TODO: Note that there is only a response when market is open. need to take this into account
-    # TODO: Can also implement uri based on stock/crypto
+    # TODO: note that there is only a response when market is open. need to take this into account
+    # TODO: can also implement uri based on stock/crypto
 
     uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
     uri_crypto = 'wss://stream.data.alpaca.markets/v1beta3/crypto/us'   # real-time crypto data
