@@ -1,7 +1,7 @@
 ## Documentation
 
 ### Ideal System Design
-![](systemdesign_revised.png)
+![](systemdesign3.png)
 
 ### Ideal System Logic
 1. Receive a news event via Alpaca's websocket
