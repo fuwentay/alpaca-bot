@@ -1,17 +1,12 @@
 import websocket
 import json
-import utils, config, database
+import utils, database
 
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# TODO: pair with some momentum indicator (MA)
-# TODO: deploy
-# TODO: take profit and stop loss needs to take into account volatility. the stock might not even fluctuate by that percentage. need to leverage!
-
-# websocket functions
-# TODO: note that news events are delayed by 5 hours. might want to look at other sources in the future.
+# To log all news through Alpaca news websocket onto database
 def on_message(ws, message):
     print(message)
     msg = json.loads(message)
@@ -19,29 +14,20 @@ def on_message(ws, message):
         if len(msg) > 0:
             if msg[0] and 'msg' in msg[0] and msg[0]['msg'] == 'authenticated':
                 ws.send(json.dumps({"action":"subscribe","news":["*"]}))
-                # Specific stock and/or crypto symbols #
-                # {"action":"subscribe","news":["AAPL", "TSLA"]}
     except Exception as e:
         print(e)
         print("error with message")
 
-    # trading strategy
-    if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # to ignore scenarios where 2 stocks are mentioned
+    # log to "news only" table
+    if msg[0]["T"] == "n":
         sym = msg[0]["symbols"][0]
         headline = msg[0]["headline"]
         impact = utils.get_impact(headline)
-        database.log_news(
+        database.log_news_only(
             sym = sym,
             headline = headline,
             impact = impact
         )
-        if impact is not None:
-            if impact > config.impact_buy:
-                utils.place_bracket_order(sym, 0)
-            elif impact < config.impact_sell:
-                utils.place_bracket_order(sym, 1)
-        else:
-            print("Impact score is None, skipping trading action.")
 
 def on_error(ws, error):
     print(error)
