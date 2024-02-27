@@ -10,21 +10,70 @@ load_dotenv()
 
 conn = psycopg2.connect(host="localhost", dbname="postgres", user="postgres", password=os.getenv("POSTGRES_PASSWORD"), port=5432)
 
-# Logging of errors to "error_logs" table
-def log_trade(error_source, error_message, error_details=None, error_severity="ERROR", user_id=None, session_id=None, request_id=None, additional_info=None):
+# Logging of quantity, side, type, time in force, order class, stop loss and take profit to "trade_logs" table
+def log_trade(qty, side, type, time_in_force, order_class, stop_loss, take_profit, user_id=None, session_id=None, request_id=None, additional_info=None):
     try:
         # Connect to your database
         cur = conn.cursor()
 
         # Create table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS error_logs (
-            error_id SERIAL PRIMARY KEY,
-            error_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-            error_source VARCHAR(255) NOT NULL,
-            error_message TEXT NOT NULL,
-            error_details TEXT,
-            error_severity VARCHAR(50),
+        CREATE TABLE IF NOT EXISTS trade_logs (
+            trade_id SERIAL PRIMARY KEY,
+            trade_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+            qty INT,
+            side VARCHAR(5),
+            type VARCHAR(20),
+            time_in_force VARCHAR(20),
+            order_class VARCHAR(20),
+            stop_loss FLOAT,
+            take_profit FLOAT,
+            user_id INT,
+            session_id VARCHAR(255),
+            request_id VARCHAR(255),
+            additional_info JSONB
+        );
+        """)
+
+        # FIXME: stop_loss and take_profit are JSON
+
+        # Prepare the INSERT statement
+        query = sql.SQL("""
+        INSERT INTO trade_logs (trade_timestamp, qty, side, type, time_in_force, order_class, stop_loss, take_profit, user_id, session_id, request_id, additional_info)
+        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """)
+        
+        # Convert additional_info to JSON string if it's not None
+        additional_info_json = json.dumps(additional_info) if additional_info is not None else None
+
+        # Execute the INSERT statement
+        cur.execute(query, (qty, side, type, time_in_force, order_class, stop_loss, take_profit, user_id, session_id, request_id, additional_info_json))
+        
+        # Commit the transaction
+        conn.commit()
+        
+        # Close the cursor and connection
+        cur.close()
+        conn.close()
+        
+    except Exception as e:
+        print(f"Failed to log error to database: {e}")
+        # Handle failure to log to database (e.g., fallback to logging to a file)
+
+
+# Logging of news headline and impact score to "news_logs" table
+def log_news(headline, impact, user_id=None, session_id=None, request_id=None, additional_info=None):
+    try:
+        # Connect to your database
+        cur = conn.cursor()
+
+        # Create table
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS news_logs (
+            news_id SERIAL PRIMARY KEY,
+            news_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+            headline VARCHAR(500),
+            impact INT,
             user_id INT,
             session_id VARCHAR(255),
             request_id VARCHAR(255),
@@ -34,15 +83,15 @@ def log_trade(error_source, error_message, error_details=None, error_severity="E
 
         # Prepare the INSERT statement
         query = sql.SQL("""
-        INSERT INTO error_logs (error_timestamp, error_source, error_message, error_details, error_severity, user_id, session_id, request_id, additional_info)
-        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO news_logs (news_timestamp, headline, impact, user_id, session_id, request_id, additional_info)
+        VALUES (NOW(), %s, %s, %s, %s, %s, %s)
         """)
         
         # Convert additional_info to JSON string if it's not None
         additional_info_json = json.dumps(additional_info) if additional_info is not None else None
 
         # Execute the INSERT statement
-        cur.execute(query, (error_source, error_message, error_details, error_severity, user_id, session_id, request_id, additional_info_json))
+        cur.execute(query, (headline, impact, user_id, session_id, request_id, additional_info_json))
         
         # Commit the transaction
         conn.commit()

@@ -1,6 +1,6 @@
 import websocket
 import json
-import utils, config
+import utils, config, database
 
 import os
 from dotenv import load_dotenv
@@ -29,7 +29,13 @@ def on_message(ws, message):
     # trading strategy
     if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # to ignore scenarios where 2 stocks are mentioned
         sym = msg[0]["symbols"][0]
-        impact = utils.get_impact(msg[0]["headline"])
+        headline = msg[0]["headline"]
+        impact = utils.get_impact(headline)
+        # TODO: need to know if this works
+        database.log_news(
+            headline = headline,
+            impact = impact
+        )
         if impact is not None:
             if impact > config.impact_buy:
                 utils.place_bracket_order(sym, 0)
