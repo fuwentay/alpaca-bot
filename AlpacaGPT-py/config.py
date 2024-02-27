@@ -1,5 +1,5 @@
-impact_buy = 70     # upper bound for long position
-impact_sell = 30    # lower bound for short position
+impact_buy = 80     # upper bound for long position
+impact_sell = 20    # lower bound for short position
 
 take_profit = 1.02   # take profit
 stop_loss = 0.98    # stop loss

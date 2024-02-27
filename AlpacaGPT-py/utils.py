@@ -34,6 +34,8 @@ def place_bracket_order(sym, n):
     }
 
     alpaca.submit_order(**order_params)
+
+    # Log trade after order submitted
     database.log_trade(**order_params)
 
 # stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
