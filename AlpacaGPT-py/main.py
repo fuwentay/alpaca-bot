@@ -34,6 +34,8 @@ def on_message(ws, message):
         database.log_news(
             sym = sym,
             headline = headline,
+            impact_buy = config.impact_buy,
+            impact_sell = config.impact_sell,
             impact = impact,
             news_trade_id = news_trade_id
         )
