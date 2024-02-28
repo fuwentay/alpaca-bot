@@ -19,7 +19,6 @@ load_dotenv()
 alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "https://paper-api.alpaca.markets")
 
 # TODO: log the different timings (news event found, before order is placed & after order is successful)
-# TODO: log buying price, config details as well
 
 # bracket order that consists of market, stop and limit order
 def place_bracket_order(sym, n, news_trade_id):
@@ -41,7 +40,10 @@ def place_bracket_order(sym, n, news_trade_id):
     # Log trade after order submitted
     order_params["news_trade_id"] = news_trade_id
     order_params["symbol_price"] = symbol_price
-    
+    order_params["take_profit_pct"] = config.take_profit
+    order_params["stop_loss_pct"] = config.stop_loss
+    order_params["position_per_trade"] = config.position_per_trade
+
     database.log_trade(**order_params)
 
 # stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
@@ -64,7 +66,7 @@ def get_impact(headline):
 
 # obtain latest closing price for given symbol
 def get_market_price(sym):
-    # TODO: note that there is only a response when market is open. need to take this into account. this is an issue when testing
+    # TODO: there is only a response when market is open. need to take this into account. this is an issue when testing
     # TODO: can also implement uri based on stock/crypto
 
     uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
