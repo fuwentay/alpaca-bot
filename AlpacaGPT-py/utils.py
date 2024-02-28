@@ -9,6 +9,8 @@ import json
 
 import math
 
+import uuid
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,9 +19,10 @@ load_dotenv()
 alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "https://paper-api.alpaca.markets")
 
 # TODO: log the different timings (news event found, before order is placed & after order is successful)
+# TODO: log buying price, config details as well
 
 # bracket order that consists of market, stop and limit order
-def place_bracket_order(sym, n):
+def place_bracket_order(sym, n, news_trade_id):
     symbol_price = get_market_price(sym)    # fetch market price through live market data websocket
 
     order_params = {
@@ -36,6 +39,9 @@ def place_bracket_order(sym, n):
     alpaca.submit_order(**order_params)
 
     # Log trade after order submitted
+    order_params["news_trade_id"] = news_trade_id
+    order_params["symbol_price"] = symbol_price
+    
     database.log_trade(**order_params)
 
 # stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
@@ -82,3 +88,7 @@ def get_market_price(sym):
             pprint.pprint(data[0])
         print('****************************')
         exit
+
+# generate unique ID to ensure news and trade event for the same stock will be logged together
+def generate_unique_id():
+    return str(uuid.uuid4())

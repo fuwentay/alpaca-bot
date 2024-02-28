@@ -30,16 +30,18 @@ def on_message(ws, message):
         sym = msg[0]["symbols"][0]
         headline = msg[0]["headline"]
         impact = utils.get_impact(headline)
+        news_trade_id = utils.generate_unique_id()  # Generate unique ID when relevant news is received
         database.log_news(
             sym = sym,
             headline = headline,
-            impact = impact
+            impact = impact,
+            news_trade_id = news_trade_id
         )
         if impact is not None:
             if impact > config.impact_buy:
-                utils.place_bracket_order(sym, 0)
+                utils.place_bracket_order(sym, 0, news_trade_id)
             elif impact < config.impact_sell:
-                utils.place_bracket_order(sym, 1)
+                utils.place_bracket_order(sym, 1, news_trade_id)
         else:
             print("Impact score is None, skipping trading action.")
 

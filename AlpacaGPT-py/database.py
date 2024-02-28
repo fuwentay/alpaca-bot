@@ -9,7 +9,7 @@ load_dotenv()
 
 
 # Logging of quantity, side, type, time in force, order class, stop loss and take profit to "trade_logs" table
-def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, take_profit, user_id=None, session_id=None, request_id=None, additional_info=None):
+def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, take_profit, news_trade_id, symbol_price, user_id=None, session_id=None, request_id=None, additional_info=None):
     try:
         conn = psycopg2.connect(host="localhost", dbname="postgres", user="postgres", password=os.getenv("POSTGRES_PASSWORD"), port=5432)
 
@@ -18,7 +18,7 @@ def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, ta
 
         # Create table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS trade_logs (
+        CREATE TABLE IF NOT EXISTS trade_logs1 (
             trade_id SERIAL PRIMARY KEY,
             trade_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
             symbol VARCHAR(10),        
@@ -29,6 +29,8 @@ def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, ta
             order_class VARCHAR(20),
             stop_loss JSON,
             take_profit JSON,
+            news_trade_id VARCHAR(40),
+            symbol_price FLOAT,
             user_id INT,
             session_id VARCHAR(255),
             request_id VARCHAR(255),
@@ -38,8 +40,8 @@ def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, ta
 
         # Prepare the INSERT statement
         query = sql.SQL("""
-        INSERT INTO trade_logs (trade_timestamp, symbol, qty, side, type, time_in_force, order_class, stop_loss, take_profit, user_id, session_id, request_id, additional_info)
-        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO trade_logs1 (trade_timestamp, symbol, qty, side, type, time_in_force, order_class, stop_loss, take_profit, news_trade_id, symbol_price, user_id, session_id, request_id, additional_info)
+        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """)
         
         # Convert python object to JSON string if it's not None
@@ -48,7 +50,7 @@ def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, ta
         additional_info_json = json.dumps(additional_info) if additional_info is not None else None
 
         # Execute the INSERT statement
-        cur.execute(query, (symbol, qty, side, type, time_in_force, order_class, stop_loss_json, take_profit_json, user_id, session_id, request_id, additional_info_json))
+        cur.execute(query, (symbol, qty, side, type, time_in_force, order_class, stop_loss_json, take_profit_json, news_trade_id, symbol_price, user_id, session_id, request_id, additional_info_json))
         
         # Commit the transaction
         conn.commit()
@@ -63,7 +65,7 @@ def log_trade(symbol, qty, side, type, time_in_force, order_class, stop_loss, ta
 
 
 # Logging of news headline and impact score to "news_logs" table
-def log_news(sym, headline, impact, user_id=None, session_id=None, request_id=None, additional_info=None):
+def log_news(sym, headline, impact, news_trade_id, user_id=None, session_id=None, request_id=None, additional_info=None):
     try:
         conn = psycopg2.connect(host="localhost", dbname="postgres", user="postgres", password=os.getenv("POSTGRES_PASSWORD"), port=5432)
 
@@ -78,6 +80,7 @@ def log_news(sym, headline, impact, user_id=None, session_id=None, request_id=No
             sym VARCHAR(10),
             headline VARCHAR(500),
             impact INT,
+            news_trade_id VARCHAR(40),
             user_id INT,
             session_id VARCHAR(255),
             request_id VARCHAR(255),
@@ -87,15 +90,15 @@ def log_news(sym, headline, impact, user_id=None, session_id=None, request_id=No
 
         # Prepare the INSERT statement
         query = sql.SQL("""
-        INSERT INTO news_logs (news_timestamp, sym, headline, impact, user_id, session_id, request_id, additional_info)
-        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO news_logs (news_timestamp, sym, headline, impact, news_trade_id, user_id, session_id, request_id, additional_info)
+        VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
         """)
         
         # Convert additional_info to JSON string if it's not None
         additional_info_json = json.dumps(additional_info) if additional_info is not None else None
 
         # Execute the INSERT statement
-        cur.execute(query, (sym, headline, impact, user_id, session_id, request_id, additional_info_json))
+        cur.execute(query, (sym, headline, impact, news_trade_id, user_id, session_id, request_id, additional_info_json))
         
         # Commit the transaction
         conn.commit()
