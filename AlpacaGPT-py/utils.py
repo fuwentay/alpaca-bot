@@ -1,6 +1,6 @@
 import alpaca_trade_api as api
 
-import config
+import config, database
 from openai import OpenAI
 
 from websocket import create_connection
@@ -9,6 +9,8 @@ import json
 
 import math
 
+import uuid
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,21 +18,33 @@ load_dotenv()
 # initialise Alpaca (Rest) Client
 alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "https://paper-api.alpaca.markets")
 
+# TODO: log the different timings (news event found, before order is placed & after order is successful)
+
 # bracket order that consists of market, stop and limit order
-def place_bracket_order(sym, n):
+def place_bracket_order(sym, n, news_trade_id):
     symbol_price = get_market_price(sym)    # fetch market price through live market data websocket
 
-    alpaca.submit_order(
-        symbol=sym,
-        # TODO: when qty = 0
-        qty=math.floor(config.position_size/symbol_price),  # fractional orders can only be simple orders. hence, there is a need to round.
-        side="buy" if n == 0 else "sell",
-        type='market',
-        time_in_force='day', # or 'gtc' 
-        order_class='bracket',
-        stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2)},     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
-        take_profit={'limit_price': round(symbol_price * config.take_profit, 2)}
-    )
+    order_params = {
+        "symbol": sym,
+        "qty": max(math.floor(config.position_size/symbol_price), 1), # fractional orders can only be simple orders. hence, there is a need to round. but when qty is rounded to 0, set it to 1.
+        "side": "buy" if n == 0 else "sell",
+        "type": 'market',
+        "time_in_force": 'day', # or 'gtc'
+        "order_class": 'bracket',
+        "stop_loss": {'stop_price': round(symbol_price * config.stop_loss, 2)}, # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
+        "take_profit": {'limit_price': round(symbol_price * config.take_profit, 2)}
+    }
+
+    alpaca.submit_order(**order_params)
+
+    # Log trade after order submitted
+    order_params["news_trade_id"] = news_trade_id
+    order_params["symbol_price"] = symbol_price
+    order_params["take_profit_pct"] = config.take_profit
+    order_params["stop_loss_pct"] = config.stop_loss
+    order_params["position_per_trade"] = config.position_per_trade
+
+    database.log_trade(**order_params)
 
 # stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
 #     'limit_price':  round(symbol_price * config.limit_price, 2)},     # no limit price as we don't want to hold onto the stock
@@ -52,7 +66,7 @@ def get_impact(headline):
 
 # obtain latest closing price for given symbol
 def get_market_price(sym):
-    # TODO: note that there is only a response when market is open. need to take this into account. this is an issue when testing
+    # TODO: there is only a response when market is open. need to take this into account. this is an issue when testing
     # TODO: can also implement uri based on stock/crypto
 
     uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
@@ -76,3 +90,7 @@ def get_market_price(sym):
             pprint.pprint(data[0])
         print('****************************')
         exit
+
+# generate unique ID to ensure news and trade event for the same stock will be logged together
+def generate_unique_id():
+    return str(uuid.uuid4())
