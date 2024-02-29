@@ -15,23 +15,23 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# initialise Alpaca (Rest) Client
+# Initialise Alpaca (Rest) Client
 alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "https://paper-api.alpaca.markets")
 
-# TODO: log the different timings (news event found, before order is placed & after order is successful)
+# TODO: Log the different timings (news event found, before order is placed & after order is successful)
 
-# bracket order that consists of market, stop and limit order
+# Bracket order that consists of market, stop and limit order
 def place_bracket_order(sym, n, news_trade_id):
-    symbol_price = get_market_price(sym)    # fetch market price through live market data websocket
+    symbol_price = get_market_price(sym)    # Fetch market price through live market data websocket
 
     order_params = {
         "symbol": sym,
-        "qty": max(math.floor(config.position_size/symbol_price), 1), # fractional orders can only be simple orders. hence, there is a need to round. but when qty is rounded to 0, set it to 1.
+        "qty": max(math.floor(config.position_size/symbol_price), 1), # Fractional orders can only be simple orders. hence, there is a need to round. but when qty is rounded to 0, set it to 1.
         "side": "buy" if n == 0 else "sell",
         "type": 'market',
         "time_in_force": 'day', # or 'gtc'
         "order_class": 'bracket',
-        "stop_loss": {'stop_price': round(symbol_price * config.stop_loss, 2)}, # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
+        "stop_loss": {'stop_price': round(symbol_price * config.stop_loss, 2)}, # Sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
         "take_profit": {'limit_price': round(symbol_price * config.take_profit, 2)}
     }
 
@@ -46,10 +46,10 @@ def place_bracket_order(sym, n, news_trade_id):
 
     database.log_trade(**order_params)
 
-# stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
-#     'limit_price':  round(symbol_price * config.limit_price, 2)},     # no limit price as we don't want to hold onto the stock
+# stop_loss={'stop_price': round(symbol_price * config.stop_loss, 2),     # Sub-penny increment does not fulfill minimum pricing criteria (https://docs.alpaca.markets/docs/orders-at-alpaca)
+#     'limit_price':  round(symbol_price * config.limit_price, 2)},     # No limit price as we don't want to hold onto the stock
 
-# gather impact score based on news headline
+# Gather impact score based on news headline
 def get_impact(headline):
     print("getting impact")
     client = OpenAI()
@@ -64,26 +64,26 @@ def get_impact(headline):
     print(response.choices[0].message.content)
     return int(response.choices[0].message.content)
 
-# obtain latest closing price for given symbol
+# Obtain latest closing price for given symbol
 def get_market_price(sym):
-    # TODO: there is only a response when market is open. need to take this into account. this is an issue when testing
-    # TODO: can also implement uri based on stock/crypto
+    # TODO: There is only a response when market is open. need to take this into account. This is an issue when testing
+    # TODO: Can also implement uri based on stock/crypto
 
-    uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # real-time stock data    
-    uri_crypto = 'wss://stream.data.alpaca.markets/v1beta3/crypto/us'   # real-time crypto data
+    uri_stock = 'wss://stream.data.alpaca.markets/v2/iex'               # Real-time stock data    
+    uri_crypto = 'wss://stream.data.alpaca.markets/v1beta3/crypto/us'   # Real-time crypto data
 
     ws = create_connection(uri_stock)
 
     auth_message = {"action":"auth","key": os.getenv("ALPACA_API_KEY"), "secret": os.getenv("ALPACA_SECRET_KEY")}
     ws.send(json.dumps(auth_message))
 
-    subscription = {"action":"subscribe","bars":[sym]}  # data schema (https://docs.alpaca.markets/docs/real-time-stock-pricing-data)
+    subscription = {"action":"subscribe","bars":[sym]}  # Data schema (https://docs.alpaca.markets/docs/real-time-stock-pricing-data)
 
     ws.send(json.dumps(subscription))
     while True:
         data = json.loads(ws.recv())
         if data[0]['T'] == 'b':
-            close_price = data[0]['c']  # attribute "c" to return close price in 1 minute intervals
+            close_price = data[0]['c']  # Attribute "c" to return close price in 1 minute intervals
             print(close_price)
             return close_price
         else:
@@ -91,6 +91,6 @@ def get_market_price(sym):
         print('****************************')
         exit
 
-# generate unique ID to ensure news and trade event for the same stock will be logged together
+# Generate unique ID to ensure news and trade event for the same stock will be logged together
 def generate_unique_id():
     return str(uuid.uuid4())
