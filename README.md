@@ -4,7 +4,8 @@
 ![](system_design.png)
 
 ### Technical details
-1. Add your own `.env` file (Alpaca and OpenAI keys)
+1. Update sample `.env` file
+2. Run main.py to spin up the trading bot
 
 ### Ideal System Logic
 1. Receive a news event via Alpaca's websocket
