@@ -6,12 +6,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# TODO: pair with some momentum indicator (MA)
-# TODO: deploy
-# TODO: take profit and stop loss needs to take into account volatility. the stock might not even fluctuate by that percentage. need to leverage!
+# TODO: Pair with some momentum indicator (MA)
+# TODO: Deploy
+# TODO: Take profit and stop loss needs to take into account volatility. The stock might not even fluctuate by that percentage. need to leverage!
 
-# websocket functions
-# TODO: note that news events are delayed by 5 hours. might want to look at other sources in the future.
+# Websocket functions
+# TODO: Note that news events are delayed by 5 hours. might want to look at other sources in the future.
 def on_message(ws, message):
     print(message)
     msg = json.loads(message)
@@ -25,8 +25,8 @@ def on_message(ws, message):
         print(e)
         print("error with message")
 
-    # trading strategy
-    if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # to ignore scenarios where 2 stocks are mentioned
+    # Trading strategy
+    if msg[0]["T"] == "n" and len(msg[0]["symbols"]) == 1: # To ignore scenarios where 2 stocks are mentioned
         sym = msg[0]["symbols"][0]
         headline = msg[0]["headline"]
         impact = utils.get_impact(headline)
@@ -59,7 +59,7 @@ def on_open(ws):
 
 if __name__ == "__main__":
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://stream.data.alpaca.markets/v1beta1/news",    # fetches both stocks and crypto news
+    ws = websocket.WebSocketApp("wss://stream.data.alpaca.markets/v1beta1/news",    # Fetches both stocks and crypto news
                               on_open=on_open,
                               on_message=on_message,
                               on_error=on_error,

@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# TODO: keep track of P&L for buy/sell orders (https://forum.alpaca.markets/t/calculate-profit-loss-for-correlated-buy-sell-orders/1308)
 
 # Logging of all closed orders (from server-side)
 # This contains a lot more crucial information that cannot be obtained from client-side. (e.g. average filled price)
@@ -239,20 +240,20 @@ def example_function():
 
     cur = conn.cursor()
 
-    # database work
+    # Database work
     cur.execute("""CREATE TABLE IF NOT EXISTS person (
         id INT PRIMARY KEY,
         name VARCHAR(255),
         age INT,
         gender CHAR
     );
-    """)    # this sends an SQL command to the database
+    """)    # This sends an SQL command to the database
 
     cur.execute("""INSERT INTO person (id, name, age, gender) VALUES
     (1, 'Mike', 30, 'm');
     """)
 
-    # commit to database
+    # Commit to database
     conn.commit()
 
     cur.close()
