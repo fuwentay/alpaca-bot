@@ -10,7 +10,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# TODO: keep track of P&L for buy/sell orders (https://forum.alpaca.markets/t/calculate-profit-loss-for-correlated-buy-sell-orders/1308)
+# TODO: Keep track of P&L for buy/sell orders (https://forum.alpaca.markets/t/calculate-profit-loss-for-correlated-buy-sell-orders/1308)
+# TODO: How to share DB?
 
 # Logging of all closed orders (from server-side)
 # This contains a lot more crucial information that cannot be obtained from client-side. (e.g. average filled price)
