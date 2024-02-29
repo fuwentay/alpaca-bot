@@ -1,11 +1,33 @@
 import psycopg2
 from psycopg2 import sql
-from datetime import datetime
 import json
+
+import alpaca_trade_api as api
+import pandas as pd
+from sqlalchemy import create_engine
 
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+
+# Logging of all closed orders (from server-side)
+# This contains a lot more crucial information that cannot be obtained from client-side. (e.g. average filled price)
+def log_closed_orders():
+    alpaca = api.REST(os.getenv("ALPACA_API_KEY"), os.getenv("ALPACA_SECRET_KEY"), "https://paper-api.alpaca.markets")
+    all_closed_orders = alpaca.list_orders(status="closed", limit=500)
+    all_orders_df = pd.DataFrame([order._raw for order in all_closed_orders])
+
+    table_name = 'alpaca_closed_logs'
+
+    # Create SQLAlchemy engine
+    engine = create_engine(f'postgresql+psycopg2://postgres:{os.getenv("POSTGRES_PASSWORD")}@localhost:5432/postgres')
+
+    # Upload DataFrame to PostgreSQL
+    all_orders_df.to_sql(table_name, engine, index=False, if_exists='replace')  # Replace 'replace' with 'append' to add to an existing table instead of replacing it
+    print(f'DataFrame uploaded to {table_name} successfully!')
+
+# log_closed_orders()
 
 
 # Logging of quantity, side, type, time in force, order class, stop loss and take profit to "trade_logs" table
