@@ -7,7 +7,7 @@
 4. Execute Trading Logic (buy or close position)
 
 ### Ideal System Design
-![](systemdesign3.png)
+![](system_design.png)
 
 ### Ideal System Logic
 1. Receive a news event via Alpaca's websocket
