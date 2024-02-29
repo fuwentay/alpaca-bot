@@ -7,7 +7,7 @@
 1. Update sample `.env` file
 2. Run `main.py` to spin up the trading bot
 
-### Ideal System Logic
+### System Logic
 1. Receive a news event via Alpaca's websocket
 2. Get headline of news event
 3. Parse headline through OpenAI's API to gather some metrics
@@ -22,3 +22,4 @@
         - Set some time window based on research (backtesting, etc.)
 3. Backtesting with Historical News Data
 4. Deployment
+
