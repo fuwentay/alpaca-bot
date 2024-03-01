@@ -1,7 +1,7 @@
 ## Documentation
 
-### Ideal System Design
-![](system_design.png)
+### System Architecture
+![](system_architecture.png)
 
 ### Technical details
 1. Update sample `.env` file
@@ -22,4 +22,3 @@
         - Set some time window based on research (backtesting, etc.)
 3. Backtesting with Historical News Data
 4. Deployment
-
