@@ -20,15 +20,21 @@ timeframes = {
 }
 lentimeframes = len(timeframes)
 
+# We create our RSIStack class by inheriting all of the functionality from backtrader.strategy. 
 class RSIStack(bt.Strategy):
+    # We then set the parameters for our strategy in the params dictionary. 
+    # The parameters dictionary is part of the Backtrader framework and makes our code more readable and maintainable.
     params = dict(
         rsi_overbought=70,
         rsi_oversold=30,
         rrr=2
     )
 
+    # With our derived strategy class created, we can now initialize a few attributes and create our indicators in __init__. 
+    # __init__ preprocesses our data to prepare it for later use, making backtesting faster.  
+    # Let's create an attribute to hold our 'alive' orders and our indicators. 
+    # We create our RSI indicators on every data/timeframe and only create our ATR indicator on the timeframe we're using for position sizing.
     def __init__(self):
-
         self.orefs = None
         self.inds = {}
         for d in self.datas:
@@ -39,6 +45,10 @@ class RSIStack(bt.Strategy):
         for i in range(len(timeframes)-1, len(self.datas), len(timeframes)):
             self.inds[self.datas[i]]['atr'] = bt.ind.ATR(self.datas[i])
 
+    # Start enables us to run code before next processes each bar. 
+    # For our strategy, we use it to record the length of the lowest timeframe. 
+    # Remember, the RSI stack requires all timeframes to be oversold or overbought. 
+    # We need to reset the stack after each bar passes on the lowest timeframe.
     def start(self):
         # Timeframes must be entered from highest to lowest frequency.
         # Getting the length of the lowest frequency timeframe will
@@ -46,7 +56,7 @@ class RSIStack(bt.Strategy):
         self.lenlowtframe = len(self.datas[-1])
         self.stacks = {}
 
-
+    # Determine if the period has changed by saving the length of the lowest timeframe bar and checking it against the current length of the lowest timeframe bar.
     def next(self):
         # Reset all of the stacks if a bar has passed on our
         # lowest frequency timeframe
@@ -54,6 +64,8 @@ class RSIStack(bt.Strategy):
             self.lenlowtframe += 1
             self.stacks = {}
 
+        # Determine if there is an RSI stack by iterating through all of the data feeds (datas) for each ticker and incrementing our stacks dictionary by one for each oversold/overbought condition. 
+        # For this, we use the modulo operator and the timeframe length to determine when we're on a new ticker.
         for i, d in enumerate(self.datas):
             # Create a dictionary for each new symbol.
             ticker = d.p.dataname
@@ -66,6 +78,7 @@ class RSIStack(bt.Strategy):
             self.stacks[ticker]['rsiob'] += self.inds[d]['rsiob'][0]
             self.stacks[ticker]['rsios'] += self.inds[d]['rsios'][0]
 
+        # Delete any dictionary entry where an RSI stack isn't found.
         for k,v in list(self.stacks.items()):
             if v['rsiob'] < len(timeframes) and v['rsios'] < len(timeframes):
                 del self.stacks[k]

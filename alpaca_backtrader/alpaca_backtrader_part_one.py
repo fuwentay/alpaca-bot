@@ -18,6 +18,8 @@ timeframes = {
     '1H':60,
 }
 
+# Creating our strategy class and initialize cerebro
+# This just loads the data and prints each line for each 'next'
 class RSIStack(bt.Strategy):
 
     def next(self):
@@ -35,6 +37,9 @@ cerebro.addstrategy(RSIStack)
 cerebro.broker.setcash(100000)
 cerebro.broker.setcommission(commission=0.0)
 
+# Add the Datastore
+# A store in backtrader is the interface with a broker. 
+# While the implementation for various brokers will be different, a store handles connectivity with the broker to access your account, orders, and positions; and provides access to data feeds from the broker.
 store = alpaca.AlpacaStore(
     key_id=ALPACA_KEY_ID,
     secret_key=ALPACA_SECRET_KEY,
