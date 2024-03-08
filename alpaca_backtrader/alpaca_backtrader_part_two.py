@@ -146,8 +146,6 @@ cerebro = bt.Cerebro()
 # Load the data
 data = ImpactScoreData(dataname='backtrader/impact.csv')
 
-breakpoint()
-
 cerebro.adddata(data)
 
 cerebro.broker.setcash(100000)
