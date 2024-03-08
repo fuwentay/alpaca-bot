@@ -146,7 +146,7 @@ cerebro = bt.Cerebro()
 # Load the data
 # data = ImpactScoreData(dataname='alpaca_backtrader/impact.csv')
 
-# FIXME: not an issue with datetime formatting. trying to access index 4 of list of 2 items
+# FIXME: not an issue with datetime formatting. trying to access index 4 of list (linetokens) of 2 items
 # cerebro.adddata(data)
 
 cerebro.broker.setcash(100000)
