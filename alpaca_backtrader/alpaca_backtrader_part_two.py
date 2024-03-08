@@ -144,9 +144,10 @@ cerebro = bt.Cerebro()
 # cerebro.addstrategy(RSIStack)
 
 # Load the data
-data = ImpactScoreData(dataname='backtrader/impact.csv')
+# data = ImpactScoreData(dataname='alpaca_backtrader/impact.csv')
 
-cerebro.adddata(data)
+# FIXME: not an issue with datetime formatting. trying to access index 4 of list of 2 items
+# cerebro.adddata(data)
 
 cerebro.broker.setcash(100000)
 cerebro.broker.setcommission(commission=0.0)
