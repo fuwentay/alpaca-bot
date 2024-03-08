@@ -1,4 +1,4 @@
 misc/
-.env
+# .env
 __pycache__/
-alpaca_backtrader/local_settings.py
+# alpaca_backtrader/local_settings.py
