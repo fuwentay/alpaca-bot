@@ -2,23 +2,33 @@ import alpaca_backtrader_api as alpaca
 import backtrader as bt
 import pytz
 import pandas as pd
-from alpaca_backtrader.local_settings import alpaca_paper
+import datetime
+from local_settings import alpaca_paper
 
 ALPACA_KEY_ID = alpaca_paper['api_key']
 ALPACA_SECRET_KEY = alpaca_paper['api_secret']
 ALPACA_PAPER = True
 
-fromdate = pd.Timestamp(2020,5,1)
-todate = pd.Timestamp(2020,8,17)
+fromdate = pd.Timestamp(2023, 1, 13)
+todate = pd.Timestamp(2023, 1, 14)
 timezone = pytz.timezone('US/Eastern')
 
-tickers = ['SPY']
+tickers = ['AAPL']
 timeframes = {
     '15Min':15,
     '30Min':30,
     '1H':60,
 }
 lentimeframes = len(timeframes)
+
+class ImpactScoreData(bt.feeds.GenericCSVData):
+    lines = ('impact_score',)
+    
+    params = (
+        ('dtformat', '%Y/%m/%d %H:%M:%S'),  # Adjusted to match the actual datetime format in your data
+        ('datetime', 0),
+        ('impact_score', 1)  # Ensure this index matches the actual column for impact score in your CSV
+    )
 
 # We create our RSIStack class by inheriting all of the functionality from backtrader.strategy. 
 class RSIStack(bt.Strategy):
@@ -114,7 +124,7 @@ class RSIStack(bt.Strategy):
 
 
     def log(self, txt, dt=None):
-        ''' Logging function fot this strategy'''
+        ''' Logging function for this strategy'''
         dt = dt or self.data.datetime[0]
         if isinstance(dt, float):
             dt = bt.num2date(dt)
@@ -131,7 +141,12 @@ class RSIStack(bt.Strategy):
             self.orefs.remove(order.ref)
 
 cerebro = bt.Cerebro()
-cerebro.addstrategy(RSIStack)
+# cerebro.addstrategy(RSIStack)
+
+# Load the data
+data = ImpactScoreData(dataname='impact2.csv')
+cerebro.adddata(data)
+
 cerebro.broker.setcash(100000)
 cerebro.broker.setcommission(commission=0.0)
 
