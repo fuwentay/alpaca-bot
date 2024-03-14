@@ -18,16 +18,6 @@ timeframes = {
     '1H':60,
 }
 
-# class ImpactScoreData(bt.feeds.GenericCSVData):
-#     lines = ('impact_score',)
-    
-#     params = (
-#         ('dtformat', '%Y/%m/%d %H:%M:%S'),  # Adjusted to match the actual datetime format in your data
-#         ('datetime', 0),
-#         ('impact_score', 1)  # Ensure this index matches the actual column for impact score in your CSV
-#     )
-
-
 # Creating our strategy class and initialize cerebro
 # This just loads the data and prints each line for each 'next'
 class RSIStack(bt.Strategy):
@@ -43,9 +33,6 @@ class RSIStack(bt.Strategy):
                   v:{self.datas[i].volume[0]}' )
 
 cerebro = bt.Cerebro()
-
-# data = ImpactScoreData(dataname='alpaca_backtrader/impact.csv')
-# cerebro.adddata(data)
 
 cerebro.addstrategy(RSIStack)
 cerebro.broker.setcash(100000)

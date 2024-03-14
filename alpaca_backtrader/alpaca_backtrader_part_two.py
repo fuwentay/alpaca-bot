@@ -21,13 +21,22 @@ timeframes = {
 }
 lentimeframes = len(timeframes)
 
-class ImpactScoreData(bt.feeds.GenericCSVData):
+class ImpactCSVData(bt.feeds.GenericCSVData):
     lines = ('impact_score',)
     
+    # Add the 'datetime' and 'impact_score' parameters to the parameter set
     params = (
-        ('dtformat', '%Y/%m/%d %H:%M:%S'),  # Adjusted to match the actual datetime format in your data
-        ('datetime', 0),
-        ('impact_score', 1)  # Ensure this index matches the actual column for impact score in your CSV
+        ('dtformat', '%Y/%m/%d %H:%M:%S'),  # Datetime format
+        ('datetime', 0),  # Index of the datetime column in the CSV
+        ('impact_score', 1),  # Index of the impact_score column in the CSV
+        ('time', -1), # -1 indicates that the field is not present (https://www.backtrader.com/blog/posts/2015-08-04-generic-csv-datafeed/generic-csv-datafeed/)
+        ('open', -1),
+        ('high', -1),
+        ('low', -1),
+        ('close', -1),
+        ('volume', -1),
+        ('openinterest', -1),        
+        ('timeframe', bt.TimeFrame.Minutes),  # Timeframe (adjust accordingly)
     )
 
 # We create our RSIStack class by inheriting all of the functionality from backtrader.strategy. 
@@ -141,12 +150,12 @@ class RSIStack(bt.Strategy):
             self.orefs.remove(order.ref)
 
 cerebro = bt.Cerebro()
-# cerebro.addstrategy(RSIStack)
+cerebro.addstrategy(RSIStack)
 
-# Load the data
-# data = ImpactScoreData(dataname='alpaca_backtrader/impact.csv')
-
-# FIXME: not an issue with datetime formatting. trying to access index 4 of list (linetokens) of 2 items
+# # Loading CSV
+# data = ImpactCSVData(
+#     dataname='alpaca_backtrader/impact.csv',  # Path to your CSV file
+# )
 # cerebro.adddata(data)
 
 cerebro.broker.setcash(100000)
