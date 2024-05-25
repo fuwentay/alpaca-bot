@@ -2,17 +2,18 @@ import alpaca_backtrader_api as alpaca
 import backtrader as bt
 import pytz
 import pandas as pd
+import datetime
 from local_settings import alpaca_paper
 
 ALPACA_KEY_ID = alpaca_paper['api_key']
 ALPACA_SECRET_KEY = alpaca_paper['api_secret']
 ALPACA_PAPER = True
 
-fromdate = pd.Timestamp(2020,5,1)
-todate = pd.Timestamp(2020,8,17)
+fromdate = pd.Timestamp(2023, 1, 13)
+todate = pd.Timestamp(2023, 1, 14)
 timezone = pytz.timezone('US/Eastern')
 
-tickers = ['SPY']
+tickers = ['AAPL']
 timeframes = {
     '15Min':15,
     '30Min':30,
@@ -20,15 +21,39 @@ timeframes = {
 }
 lentimeframes = len(timeframes)
 
+class ImpactCSVData(bt.feeds.GenericCSVData):
+    lines = ('impact_score',)
+    
+    # Add the 'datetime' and 'impact_score' parameters to the parameter set
+    params = (
+        ('dtformat', '%Y/%m/%d %H:%M:%S'),  # Datetime format
+        ('datetime', 0),  # Index of the datetime column in the CSV
+        ('impact_score', 1),  # Index of the impact_score column in the CSV
+        ('time', -1), # -1 indicates that the field is not present (https://www.backtrader.com/blog/posts/2015-08-04-generic-csv-datafeed/generic-csv-datafeed/)
+        ('open', -1),
+        ('high', -1),
+        ('low', -1),
+        ('close', -1),
+        ('volume', -1),
+        ('openinterest', -1),        
+        ('timeframe', bt.TimeFrame.Minutes),  # Timeframe (adjust accordingly)
+    )
+
+# We create our RSIStack class by inheriting all of the functionality from backtrader.strategy. 
 class RSIStack(bt.Strategy):
+    # We then set the parameters for our strategy in the params dictionary. 
+    # The parameters dictionary is part of the Backtrader framework and makes our code more readable and maintainable.
     params = dict(
         rsi_overbought=70,
         rsi_oversold=30,
         rrr=2
     )
 
+    # With our derived strategy class created, we can now initialize a few attributes and create our indicators in __init__. 
+    # __init__ preprocesses our data to prepare it for later use, making backtesting faster.  
+    # Let's create an attribute to hold our 'alive' orders and our indicators. 
+    # We create our RSI indicators on every data/timeframe and only create our ATR indicator on the timeframe we're using for position sizing.
     def __init__(self):
-
         self.orefs = None
         self.inds = {}
         for d in self.datas:
@@ -39,6 +64,10 @@ class RSIStack(bt.Strategy):
         for i in range(len(timeframes)-1, len(self.datas), len(timeframes)):
             self.inds[self.datas[i]]['atr'] = bt.ind.ATR(self.datas[i])
 
+    # Start enables us to run code before next processes each bar. 
+    # For our strategy, we use it to record the length of the lowest timeframe. 
+    # Remember, the RSI stack requires all timeframes to be oversold or overbought. 
+    # We need to reset the stack after each bar passes on the lowest timeframe.
     def start(self):
         # Timeframes must be entered from highest to lowest frequency.
         # Getting the length of the lowest frequency timeframe will
@@ -46,7 +75,7 @@ class RSIStack(bt.Strategy):
         self.lenlowtframe = len(self.datas[-1])
         self.stacks = {}
 
-
+    # Determine if the period has changed by saving the length of the lowest timeframe bar and checking it against the current length of the lowest timeframe bar.
     def next(self):
         # Reset all of the stacks if a bar has passed on our
         # lowest frequency timeframe
@@ -54,6 +83,8 @@ class RSIStack(bt.Strategy):
             self.lenlowtframe += 1
             self.stacks = {}
 
+        # Determine if there is an RSI stack by iterating through all of the data feeds (datas) for each ticker and incrementing our stacks dictionary by one for each oversold/overbought condition. 
+        # For this, we use the modulo operator and the timeframe length to determine when we're on a new ticker.
         for i, d in enumerate(self.datas):
             # Create a dictionary for each new symbol.
             ticker = d.p.dataname
@@ -66,6 +97,7 @@ class RSIStack(bt.Strategy):
             self.stacks[ticker]['rsiob'] += self.inds[d]['rsiob'][0]
             self.stacks[ticker]['rsios'] += self.inds[d]['rsios'][0]
 
+        # Delete any dictionary entry where an RSI stack isn't found.
         for k,v in list(self.stacks.items()):
             if v['rsiob'] < len(timeframes) and v['rsios'] < len(timeframes):
                 del self.stacks[k]
@@ -101,7 +133,7 @@ class RSIStack(bt.Strategy):
 
 
     def log(self, txt, dt=None):
-        ''' Logging function fot this strategy'''
+        ''' Logging function for this strategy'''
         dt = dt or self.data.datetime[0]
         if isinstance(dt, float):
             dt = bt.num2date(dt)
@@ -119,6 +151,13 @@ class RSIStack(bt.Strategy):
 
 cerebro = bt.Cerebro()
 cerebro.addstrategy(RSIStack)
+
+# # Loading CSV
+# data = ImpactCSVData(
+#     dataname='alpaca_backtrader/impact.csv',  # Path to your CSV file
+# )
+# cerebro.adddata(data)
+
 cerebro.broker.setcash(100000)
 cerebro.broker.setcommission(commission=0.0)
 
