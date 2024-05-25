@@ -1,5 +1,8 @@
 ## Documentation
 
+### Updates
+25 May: Changed the direction of the project -- from backtesting the GPT strategy to implementing a control strategy.
+
 ### System Architecture
 ![](system_architecture.png)
 
