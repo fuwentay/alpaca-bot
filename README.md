@@ -1,7 +1,8 @@
 ## Documentation
 
 ### Results
-![not robust testing](results.png)
+Paper trading for a month with manual intervention (NOT robust)
+![](results.png)
 
 ### Updates
 25 May: Changed the direction of the project -- from backtesting the GPT strategy to implementing a control strategy.
